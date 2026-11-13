@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DUBOXD — University of Dhaka Film Ledger</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="css/style.css" rel="stylesheet">
+</head>
+<body data-page="home">
+  <div id="site-header-mount"></div>
+
+  <main class="site-container pb-5">
+    <section class="campus-strip" id="home-next-screening"></section>
+
+    <section class="mb-4">
+      <div class="section-bar">
+        <h2 class="section-title">Popular on DU Campus This Week</h2>
+        <a href="films.html" class="section-link">Complete Film Index</a>
+      </div>
+      <div class="poster-grid-6" id="home-trending-grid"></div>
+    </section>
+
+    <div class="row g-4 mt-1">
+      <div class="col-lg-8">
+        <div class="section-bar">
+          <h2 class="section-title">Recent Member Dispatches</h2>
+          <a href="films.html" class="section-link">Log Dispatch</a>
+        </div>
+        <div class="review-list" id="home-reviews-list"></div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="section-bar">
+          <h2 class="section-title">Active Film Societies</h2>
+          <a href="screenings.html" class="section-link">Schedule</a>
+        </div>
+        <div class="film-action-panel mb-3">
+          <div class="eyebrow-tag mb-1">TSC Ground Floor</div>
+          <div class="fw-bold mb-1">Dhaka University Film Society</div>
+          <p class="text-secondary mb-2" style="font-size: 12px;">Weekly 35mm and DCP screenings, study circles, and International Inter-University Short Film Festival archives.</p>
+          <a href="screenings.html" class="btn-ghost w-100 justify-content-center">View Screening Roster</a>
+        </div>
+        <div class="film-action-panel">
+          <div class="eyebrow-tag mb-1">Curated Dossier</div>
+          <div class="fw-bold mb-1">South Asian Parallel Cinema Canon</div>
+          <p class="text-secondary mb-2" style="font-size: 12px;">Essential restorations from Satyajit Ray, Ritwik Ghatak, Zahir Raihan, Tareque Masud, and Mrinal Sen.</p>
+          <a href="films.html" class="btn-ghost w-100 justify-content-center">Browse Index</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer-mount"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/tmdb.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
