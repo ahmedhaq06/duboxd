@@ -140,7 +140,7 @@ window.DuboxdStore = (function () {
           query = query.eq("movie_id", Number(movieId));
         }
         const { data, error } = await query;
-        if (!error && data && data.length) return data;
+        if (!error && Array.isArray(data)) return data;
       } catch (e) {}
     }
 
