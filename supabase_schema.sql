@@ -28,27 +28,8 @@ create table if not exists public.logs (
   created_at timestamptz default now()
 );
 
-create table if not exists public.screenings (
-  id text primary key,
-  movie_id integer not null,
-  movie_title text not null,
-  movie_year text not null,
-  director text not null,
-  poster_path text,
-  club_name text not null,
-  venue text not null,
-  screening_date date not null,
-  screening_time text not null,
-  format_tag text default 'DCP Restoration',
-  entry_note text default 'Open to DU Students',
-  rsvp_count integer default 1,
-  discussion_lead text,
-  created_at timestamptz default now()
-);
-
 alter table public.profiles enable row level security;
 alter table public.logs enable row level security;
-alter table public.screenings enable row level security;
 
 create policy "Public profiles are viewable by everyone"
   on public.profiles for select using (true);
@@ -64,12 +45,3 @@ create policy "Logs are viewable by everyone"
 
 create policy "Anyone can insert logs"
   on public.logs for insert with check (true);
-
-create policy "Screenings are viewable by everyone"
-  on public.screenings for select using (true);
-
-create policy "Anyone can publish screenings"
-  on public.screenings for insert with check (true);
-
-create policy "Anyone can update screening RSVP count"
-  on public.screenings for update using (true);

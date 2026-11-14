@@ -119,7 +119,6 @@ window.DuboxdApp = (function () {
           <ul class="nav-links">
             <li><a href="index.html" class="${activePage === "home" ? "active" : ""}">Index</a></li>
             <li><a href="films.html" class="${activePage === "films" ? "active" : ""}">Films</a></li>
-            <li><a href="screenings.html" class="${activePage === "screenings" ? "active" : ""}">Screenings</a></li>
             <li><a href="profile.html" class="${activePage === "profile" ? "active" : ""}">Dossier</a></li>
           </ul>
           <div class="header-actions">
@@ -139,14 +138,11 @@ window.DuboxdApp = (function () {
   function renderFooter() {
     const mount = document.getElementById("site-footer-mount");
     if (!mount) return;
-    const tmdbState = window.DuboxdTMDB.hasApiKey() ? "TMDB Live Feed" : "Curated Archive Mode";
-    const supaState = window.DuboxdStore.isSupabaseConnected() ? "Supabase Connected" : "Local Sync Active";
 
     mount.innerHTML = `
       <footer class="site-footer">
         <div class="site-container footer-inner">
-          <div>DUBOXD — UNIVERSITY OF DHAKA FILM ARCHIVE &amp; SCREENING REGISTER</div>
-          <div>${tmdbState} / ${supaState}</div>
+          <div>DUBOXD — UNIVERSITY OF DHAKA FILM ARCHIVE</div>
         </div>
       </footer>
     `;
@@ -200,7 +196,7 @@ window.DuboxdApp = (function () {
                 </div>
                 <div class="mb-3">
                   <label class="form-label-caps">Critical Dispatch / Notes</label>
-                  <textarea id="log-review-text" class="form-control-dark" rows="3" placeholder="Write your screening notes or review..."></textarea>
+                  <textarea id="log-review-text" class="form-control-dark" rows="3" placeholder="Write your review or notes..."></textarea>
                 </div>
                 <div class="d-flex justify-content-end gap-2">
                   <button type="button" class="btn-ghost" data-bs-dismiss="modal">Cancel</button>
@@ -294,25 +290,29 @@ window.DuboxdApp = (function () {
         movieIdVal = Date.now();
       }
 
-      await window.DuboxdStore.addLog({
-        movie_id: movieIdVal,
-        movie_title: titleVal,
-        movie_year: yearVal,
-        poster_path: posterVal,
-        rating: selectedRating,
-        liked: isLiked,
-        rewatch: isRewatch,
-        watched_date: document.getElementById("log-watched-date").value,
-        review: document.getElementById("log-review-text").value
-      });
+      try {
+        await window.DuboxdStore.addLog({
+          movie_id: movieIdVal,
+          movie_title: titleVal,
+          movie_year: yearVal,
+          poster_path: posterVal,
+          rating: selectedRating,
+          liked: isLiked,
+          rewatch: isRewatch,
+          watched_date: document.getElementById("log-watched-date").value,
+          review: document.getElementById("log-review-text").value
+        });
 
-      const modalEl = document.getElementById("globalLogModal");
-      const bsModal = window.bootstrap.Modal.getInstance(modalEl);
-      if (bsModal) bsModal.hide();
+        const modalEl = document.getElementById("globalLogModal");
+        const bsModal = window.bootstrap.Modal.getInstance(modalEl);
+        if (bsModal) bsModal.hide();
 
-      document.getElementById("log-review-text").value = "";
-      showToast("Entry recorded in DU Film Ledger");
-      window.dispatchEvent(new CustomEvent("duboxd:log-added"));
+        document.getElementById("log-review-text").value = "";
+        showToast("Entry recorded in DU Film Ledger");
+        window.dispatchEvent(new CustomEvent("duboxd:log-added"));
+      } catch (err) {
+        showToast(err.message || "Could not save entry");
+      }
     });
   }
 
@@ -332,33 +332,20 @@ window.DuboxdApp = (function () {
   async function initHomePage() {
     const trendingGrid = document.getElementById("home-trending-grid");
     const reviewsList = document.getElementById("home-reviews-list");
-    const nextScreeningBox = document.getElementById("home-next-screening");
 
     const movies = await window.DuboxdTMDB.fetchTrending();
     if (trendingGrid) {
       trendingGrid.innerHTML = movies.slice(0, 6).map(renderPosterCard).join("");
     }
 
-    const screenings = await window.DuboxdStore.getScreenings();
-    if (nextScreeningBox && screenings.length) {
-      const next = screenings[0];
-      nextScreeningBox.innerHTML = `
-        <div class="campus-strip-meta">
-          <span class="eyebrow-tag">Next Campus Projection — ${next.club_name}</span>
-          <h2 class="campus-strip-title">${next.movie_title} (${next.movie_year}) — Dir. ${next.director}</h2>
-          <div class="campus-strip-sub">${next.venue} | ${next.screening_date} at ${next.screening_time} | ${next.format_tag}</div>
-        </div>
-        <div class="d-flex gap-2">
-          <a href="film.html?id=${next.movie_id}" class="btn-ghost">Film Dossier</a>
-          <a href="screenings.html" class="btn-ochre">All Screenings (${screenings.length})</a>
-        </div>
-      `;
-    }
-
     async function loadHomeReviews() {
       const logs = await window.DuboxdStore.getLogs();
       if (reviewsList) {
-        reviewsList.innerHTML = logs.slice(0, 5).map((l) => renderReviewCard(l, true)).join("");
+        if (!logs.length) {
+          reviewsList.innerHTML = `<div class="review-card review-card-NoPoster"><p class="review-body text-secondary">No member dispatches logged yet.</p></div>`;
+        } else {
+          reviewsList.innerHTML = logs.slice(0, 5).map((l) => renderReviewCard(l, true)).join("");
+        }
       }
     }
 
@@ -470,8 +457,8 @@ window.DuboxdApp = (function () {
     }
 
     if (favBtn) {
-      favBtn.addEventListener("click", () => {
-        const added = window.DuboxdStore.toggleFavorite(movie.id);
+      favBtn.addEventListener("click", async () => {
+        const added = await window.DuboxdStore.toggleFavorite(movie.id);
         syncActionButtons();
         showToast(added ? "Pinned to Profile Top 4" : "Removed from Profile Top 4");
       });
@@ -509,96 +496,6 @@ window.DuboxdApp = (function () {
     window.addEventListener("duboxd:log-added", renderFilmReviews);
   }
 
-  async function initScreeningsPage() {
-    const listMount = document.getElementById("screenings-list-mount");
-    const form = document.getElementById("schedule-screening-form");
-
-    async function loadScreenings() {
-      const items = await window.DuboxdStore.getScreenings();
-      if (!listMount) return;
-      listMount.innerHTML = items
-        .map((s) => {
-          const posterObj = {
-            id: s.movie_id,
-            title: s.movie_title,
-            release_date: s.movie_year,
-            director: s.director,
-            poster_path: s.poster_path
-          };
-          const posterUrl = window.DuboxdTMDB.getPosterUrl(posterObj);
-          const fallbackUrl = window.DuboxdTMDB.buildCriterionSvgDataUri(s.movie_title, s.movie_year, s.director);
-          const rsvped = window.DuboxdStore.hasRsvped(s.id);
-
-          return `
-            <div class="screening-card">
-              <a href="film.html?id=${s.movie_id}" class="screening-poster">
-                <img src="${posterUrl}" alt="${s.movie_title}" onerror="this.onerror=null;this.src='${fallbackUrl}';">
-              </a>
-              <div>
-                <div class="screening-club">${s.club_name}</div>
-                <h3 class="screening-title"><a href="film.html?id=${s.movie_id}">${s.movie_title}</a> <span class="review-film-year">(${s.movie_year}) — Dir. ${s.director}</span></h3>
-                <div class="screening-specs">
-                  <span>Venue: <strong>${s.venue}</strong></span>
-                  <span>Date: <strong>${s.screening_date}</strong></span>
-                  <span>Time: <strong>${s.screening_time}</strong></span>
-                </div>
-                <div class="d-flex flex-wrap gap-2 align-items-center mt-2">
-                  <span class="spec-pill">${s.format_tag}</span>
-                  <span class="spec-pill">${s.entry_note}</span>
-                  <span class="text-secondary" style="font-size:11px;">${s.discussion_lead}</span>
-                </div>
-              </div>
-              <div class="screening-actions text-end">
-                <div class="mb-2" style="font-size:11px; color: var(--text-ash);">
-                  <strong style="color: var(--text-bone); font-size:15px;">${s.rsvp_count || 0}</strong> Attending
-                </div>
-                <button type="button" class="btn-ochre btn-rsvp ${rsvped ? "active" : ""}" data-id="${s.id}">
-                  ${rsvped ? "Seat Reserved" : "Reserve Seat"}
-                </button>
-              </div>
-            </div>
-          `;
-        })
-        .join("");
-
-      listMount.querySelectorAll(".btn-rsvp").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const id = btn.getAttribute("data-id");
-          const active = window.DuboxdStore.toggleRsvp(id);
-          showToast(active ? "Seat reserved for screening" : "Reservation cancelled");
-          loadScreenings();
-        });
-      });
-    }
-
-    if (form) {
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        await window.DuboxdStore.addScreening({
-          movie_id: 5967,
-          movie_title: document.getElementById("scr-title").value.trim(),
-          movie_year: document.getElementById("scr-year").value.trim(),
-          director: document.getElementById("scr-director").value.trim(),
-          club_name: document.getElementById("scr-club").value.trim(),
-          venue: document.getElementById("scr-venue").value.trim(),
-          screening_date: document.getElementById("scr-date").value,
-          screening_time: document.getElementById("scr-time").value,
-          format_tag: document.getElementById("scr-format").value.trim(),
-          entry_note: document.getElementById("scr-entry").value.trim(),
-          discussion_lead: document.getElementById("scr-notes").value.trim()
-        });
-        form.reset();
-        const modalEl = document.getElementById("scheduleScreeningModal");
-        const bsModal = window.bootstrap.Modal.getInstance(modalEl);
-        if (bsModal) bsModal.hide();
-        showToast("Campus screening published");
-        await loadScreenings();
-      });
-    }
-
-    await loadScreenings();
-  }
-
   async function initProfilePage() {
     const user = window.DuboxdStore.getCurrentUser();
     if (!user) {
@@ -632,7 +529,9 @@ window.DuboxdApp = (function () {
       const favMovies = await Promise.all(favIds.map((id) => window.DuboxdTMDB.getMovieDetails(id)));
       const favGrid = document.getElementById("profile-favorites-grid");
       if (favGrid) {
-        favGrid.innerHTML = favMovies.map(renderPosterCard).join("");
+        favGrid.innerHTML = favMovies.length
+          ? favMovies.map(renderPosterCard).join("")
+          : `<div class="text-secondary">No favorites selected yet.</div>`;
       }
 
       const watchIds = window.DuboxdStore.getWatchlistIds();
@@ -644,28 +543,33 @@ window.DuboxdApp = (function () {
           : `<div class="text-secondary">Watchlist is empty.</div>`;
       }
 
-      const logs = await window.DuboxdStore.getLogs();
+      const allLogs = await window.DuboxdStore.getLogs();
+      const logs = allLogs.filter((l) => !l.user_id || l.user_id === user.id);
       document.getElementById("stat-total-logs").textContent = logs.length;
       document.getElementById("stat-watchlist-count").textContent = watchIds.length;
 
       const diaryBody = document.getElementById("profile-diary-tbody");
       if (diaryBody) {
-        diaryBody.innerHTML = logs
-          .map(
-            (l) => `
-          <tr>
-            <td class="diary-date-box">${l.watched_date}</td>
-            <td>
-              <a href="film.html?id=${l.movie_id}" class="fw-bold">${l.movie_title}</a>
-              <span class="review-film-year">${l.movie_year}</span>
-            </td>
-            <td>${renderStarsHtml(l.rating, l.liked)}</td>
-            <td class="text-secondary">${l.rewatch ? "Rewatch" : "First Watch"}</td>
-            <td class="text-secondary">${l.user_name}</td>
-          </tr>
-        `
-          )
-          .join("");
+        if (!logs.length) {
+          diaryBody.innerHTML = `<tr><td colspan="5" class="text-secondary">No diary entries recorded yet.</td></tr>`;
+        } else {
+          diaryBody.innerHTML = logs
+            .map(
+              (l) => `
+            <tr>
+              <td class="diary-date-box">${l.watched_date}</td>
+              <td>
+                <a href="film.html?id=${l.movie_id}" class="fw-bold">${l.movie_title}</a>
+                <span class="review-film-year">${l.movie_year}</span>
+              </td>
+              <td>${renderStarsHtml(l.rating, l.liked)}</td>
+              <td class="text-secondary">${l.rewatch ? "Rewatch" : "First Watch"}</td>
+              <td class="text-secondary">${l.user_name}</td>
+            </tr>
+          `
+            )
+            .join("");
+        }
       }
     }
 
@@ -721,7 +625,6 @@ window.DuboxdApp = (function () {
     if (page === "home") initHomePage();
     if (page === "films") initFilmsPage();
     if (page === "film") initFilmDetailPage();
-    if (page === "screenings") initScreeningsPage();
     if (page === "profile") initProfilePage();
     if (page === "login") initLoginPage();
   }

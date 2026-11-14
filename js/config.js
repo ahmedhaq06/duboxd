@@ -1,7 +1,7 @@
 window.DUBOXD_CONFIG = {
-  SUPABASE_URL: "",
-  SUPABASE_ANON_KEY: "",
-  TMDB_API_KEY: "",
+  SUPABASE_URL: "https://ijaoxfmchuxhkikoyasr.supabase.co",
+  SUPABASE_ANON_KEY: "sb_publishable_GvsT4fZRhEl1ujkYcJ6QTQ_sK5a8TDK",
+  TMDB_API_KEY: "bc0a7d25c6bdbca2e0053184bdf8b5a3",
   TMDB_BASE_URL: "https://api.themoviedb.org/3",
   TMDB_IMG_POSTER: "https://image.tmdb.org/t/p/w500",
   TMDB_IMG_BACKDROP: "https://image.tmdb.org/t/p/w1280"
@@ -211,119 +211,5 @@ window.DUBOXD_SEED_MOVIES = [
     genres: ["Drama"],
     cast: ["Trevante Rhodes", "André Holland", "Janelle Monáe", "Mahershala Ali"],
     overview: "The tender, heartbreaking story of a young man's struggle to find himself, told across three defining chapters in his life as he experiences the ecstasy, pain, and beauty of falling in love."
-  }
-];
-
-window.DUBOXD_SEED_LOGS = [
-  {
-    id: "log-101",
-    movie_id: 5967,
-    movie_title: "Pather Panchali",
-    movie_year: "1955",
-    poster_path: "/fr9H7m4r8T9xL2C7V5B3N1K6J0Q.jpg",
-    user_name: "Arifur Rahman",
-    user_dept: "Film & Television",
-    user_hall: "Salimullah Muslim Hall",
-    rating: 5,
-    liked: true,
-    rewatch: true,
-    watched_date: "2026-11-12",
-    review: "Watched the 4K restoration at TSC Auditorium. Subrata Mitra's bounce lighting and Ravi Shankar's sitar motif during the monsoon sequence still silence an entire hall of three hundred students."
-  },
-  {
-    id: "log-102",
-    movie_id: 843,
-    movie_title: "In the Mood for Love",
-    movie_year: "2000",
-    poster_path: "/iYypPT4bhqXfq1b6EnmxvRt6b2Y.jpg",
-    user_name: "Nusrat Jahan",
-    user_dept: "English Literature",
-    user_hall: "Rokeya Hall",
-    rating: 5,
-    liked: true,
-    rewatch: false,
-    watched_date: "2026-11-11",
-    review: "Christopher Doyle frames doorways, mirrors, and clock faces so tightly that the audience feels like an intruder in their silence. Every frame is pure restraint."
-  },
-  {
-    id: "log-103",
-    movie_id: 11423,
-    movie_title: "Memories of Murder",
-    movie_year: "2003",
-    poster_path: "/wcg3H2X4H23A2kG3B6n1A0P4C8P.jpg",
-    user_name: "Tanvir Hasan",
-    user_dept: "Economics",
-    user_hall: "Jagannath Hall",
-    rating: 5,
-    liked: true,
-    rewatch: false,
-    watched_date: "2026-11-10",
-    review: "The tonal shift from slapstick procedural incompetence into existential dread is unmatched. That final close-up of Song Kang-ho looking straight through the lens stays with you for days."
-  },
-  {
-    id: "log-104",
-    movie_id: 470044,
-    movie_title: "Close-Up",
-    movie_year: "1990",
-    poster_path: "/8k5M2P9L4V1N7C3B6X0Z9Q2W4E8.jpg",
-    user_name: "Maliha Chowdhury",
-    user_dept: "Sociology",
-    user_hall: "Shamsun Nahar Hall",
-    rating: 4,
-    liked: true,
-    rewatch: false,
-    watched_date: "2026-11-09",
-    review: "Sabzian explaining to the courtroom that cinema was the only language that made his suffering feel dignified should be mandatory viewing for every film society member."
-  }
-];
-
-window.DUBOXD_SEED_SCREENINGS = [
-  {
-    id: "scr-201",
-    movie_id: 5967,
-    movie_title: "Pather Panchali",
-    movie_year: "1955",
-    director: "Satyajit Ray",
-    poster_path: "/fr9H7m4r8T9xL2C7V5B3N1K6J0Q.jpg",
-    club_name: "DU Film Society (DUFS)",
-    venue: "TSC Auditorium, Ground Floor",
-    screening_date: "2026-11-18",
-    screening_time: "17:30",
-    format_tag: "DCP Restoration",
-    entry_note: "Open to all DU ID holders",
-    rsvp_count: 84,
-    discussion_lead: "Open forum after screening on Ray and Post-Partition Realism"
-  },
-  {
-    id: "scr-202",
-    movie_id: 843,
-    movie_title: "In the Mood for Love",
-    movie_year: "2000",
-    director: "Wong Kar-wai",
-    poster_path: "/iYypPT4bhqXfq1b6EnmxvRt6b2Y.jpg",
-    club_name: "Department of Television, Film & Photography",
-    venue: "RC Majumdar Arts Auditorium",
-    screening_date: "2026-11-21",
-    screening_time: "16:00",
-    format_tag: "Criterion HD",
-    entry_note: "Free Entry",
-    rsvp_count: 63,
-    discussion_lead: "Cinematography analysis on color temperature and step-printing"
-  },
-  {
-    id: "scr-203",
-    movie_id: 11423,
-    movie_title: "Memories of Murder",
-    movie_year: "2003",
-    director: "Bong Joon-ho",
-    poster_path: "/wcg3H2X4H23A2kG3B6n1A0P4C8P.jpg",
-    club_name: "Zahir Raihan Film Circle",
-    venue: "Social Sciences Faculty Seminar Room 302",
-    screening_date: "2026-11-25",
-    screening_time: "18:00",
-    format_tag: "35mm Digital Scan",
-    entry_note: "Registration Required",
-    rsvp_count: 49,
-    discussion_lead: "Post-screening discussion on East Asian New Wave Thrillers"
   }
 ];

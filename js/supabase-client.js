@@ -15,18 +15,14 @@ window.DuboxdStore = (function () {
     USER: "duboxd_active_user",
     LOGS: "duboxd_logs",
     WATCHLIST: "duboxd_watchlist",
-    FAVORITES: "duboxd_favorites",
-    SCREENINGS: "duboxd_screenings",
-    RSVPS: "duboxd_rsvps"
+    FAVORITES: "duboxd_favorites"
   };
 
   function initSeedData() {
-    if (!localStorage.getItem(STORAGE_KEYS.LOGS)) {
-      localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(window.DUBOXD_SEED_LOGS || []));
-    }
-    if (!localStorage.getItem(STORAGE_KEYS.SCREENINGS)) {
-      localStorage.setItem(STORAGE_KEYS.SCREENINGS, JSON.stringify(window.DUBOXD_SEED_SCREENINGS || []));
-    }
+    const existingLogs = JSON.parse(localStorage.getItem(STORAGE_KEYS.LOGS) || "[]");
+    const cleanedLogs = existingLogs.filter((l) => !["log-101", "log-102", "log-103", "log-104"].includes(l.id));
+    localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(cleanedLogs));
+
     if (!localStorage.getItem(STORAGE_KEYS.WATCHLIST)) {
       localStorage.setItem(STORAGE_KEYS.WATCHLIST, JSON.stringify([]));
     }
@@ -59,15 +55,27 @@ window.DuboxdStore = (function () {
     if (error) throw error;
     const u = data.user;
     const meta = u.user_metadata || {};
+    let dbProfile = null;
+    try {
+      const { data: profData } = await supabase.from("profiles").select("*").eq("id", u.id).single();
+      if (profData) dbProfile = profData;
+    } catch (e) {}
+
     const profile = {
       id: u.id,
       email: u.email,
-      name: meta.name || email.split("@")[0],
-      dept: meta.dept || "DU Member",
-      hall: meta.hall || "University of Dhaka",
-      batch: meta.batch || "",
-      bio: meta.bio || ""
+      name: (dbProfile && dbProfile.name) || meta.name || email.split("@")[0],
+      dept: (dbProfile && dbProfile.dept) || meta.dept || "DU Member",
+      hall: (dbProfile && dbProfile.hall) || meta.hall || "University of Dhaka",
+      batch: (dbProfile && dbProfile.batch) || meta.batch || "",
+      bio: (dbProfile && dbProfile.bio) || meta.bio || ""
     };
+    if (dbProfile && Array.isArray(dbProfile.watchlist)) {
+      localStorage.setItem(STORAGE_KEYS.WATCHLIST, JSON.stringify(dbProfile.watchlist));
+    }
+    if (dbProfile && Array.isArray(dbProfile.favorites)) {
+      localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(dbProfile.favorites));
+    }
     localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(profile));
     return profile;
   }
@@ -132,7 +140,7 @@ window.DuboxdStore = (function () {
           query = query.eq("movie_id", Number(movieId));
         }
         const { data, error } = await query;
-        if (!error && data) return data;
+        if (!error && data && data.length) return data;
       } catch (e) {}
     }
 
@@ -246,95 +254,6 @@ window.DuboxdStore = (function () {
     return added;
   }
 
-  async function getScreenings() {
-    if (supabase) {
-      try {
-        const { data, error } = await supabase
-          .from("screenings")
-          .select("*")
-          .order("screening_date", { ascending: true });
-        if (!error && data && data.length) return data;
-      } catch (e) {}
-    }
-    return JSON.parse(localStorage.getItem(STORAGE_KEYS.SCREENINGS) || "[]");
-  }
-
-  async function addScreening(item) {
-    const user = getCurrentUser();
-    if (!user) {
-      window.location.href = "login.html";
-      throw new Error("Please sign in to publish a screening.");
-    }
-    const record = {
-      id: "scr-" + Date.now(),
-      movie_id: Number(item.movie_id || 5967),
-      movie_title: item.movie_title,
-      movie_year: item.movie_year || "2024",
-      director: item.director || "DU Selection",
-      poster_path: item.poster_path || "",
-      club_name: item.club_name,
-      venue: item.venue,
-      screening_date: item.screening_date,
-      screening_time: item.screening_time,
-      format_tag: item.format_tag || "Digital Projection",
-      entry_note: item.entry_note || "Open to DU Students",
-      rsvp_count: 1,
-      discussion_lead: item.discussion_lead || "Open floor discussion following credits"
-    };
-
-    if (supabase) {
-      const { error } = await supabase.from("screenings").insert([record]);
-      if (error) throw error;
-    }
-
-    const list = JSON.parse(localStorage.getItem(STORAGE_KEYS.SCREENINGS) || "[]");
-    list.unshift(record);
-    localStorage.setItem(STORAGE_KEYS.SCREENINGS, JSON.stringify(list));
-    return record;
-  }
-
-  function hasRsvped(screeningId) {
-    const rsvps = JSON.parse(localStorage.getItem(STORAGE_KEYS.RSVPS) || "[]");
-    return rsvps.includes(screeningId);
-  }
-
-  async function toggleRsvp(screeningId) {
-    const rsvps = JSON.parse(localStorage.getItem(STORAGE_KEYS.RSVPS) || "[]");
-    const screenings = JSON.parse(localStorage.getItem(STORAGE_KEYS.SCREENINGS) || "[]");
-    const idx = rsvps.indexOf(screeningId);
-    let active = false;
-    let updatedCount = 1;
-
-    if (idx >= 0) {
-      rsvps.splice(idx, 1);
-      screenings.forEach((s) => {
-        if (s.id === screeningId && s.rsvp_count > 0) {
-          s.rsvp_count -= 1;
-          updatedCount = s.rsvp_count;
-        }
-      });
-    } else {
-      rsvps.push(screeningId);
-      active = true;
-      screenings.forEach((s) => {
-        if (s.id === screeningId) {
-          s.rsvp_count = (s.rsvp_count || 0) + 1;
-          updatedCount = s.rsvp_count;
-        }
-      });
-    }
-
-    localStorage.setItem(STORAGE_KEYS.RSVPS, JSON.stringify(rsvps));
-    localStorage.setItem(STORAGE_KEYS.SCREENINGS, JSON.stringify(screenings));
-
-    if (supabase) {
-      try {
-        await supabase.from("screenings").update({ rsvp_count: updatedCount }).eq("id", screeningId);
-      } catch (e) {}
-    }
-    return active;
-  }
-
   return {
     isSupabaseConnected,
     getCurrentUser,
@@ -348,10 +267,6 @@ window.DuboxdStore = (function () {
     toggleWatchlist,
     getFavoriteIds,
     isFavorite,
-    toggleFavorite,
-    getScreenings,
-    addScreening,
-    hasRsvped,
-    toggleRsvp
+    toggleFavorite
   };
 })();
