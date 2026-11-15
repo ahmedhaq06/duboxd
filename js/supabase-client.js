@@ -65,8 +65,8 @@ window.DuboxdStore = (function () {
       id: u.id,
       email: u.email,
       name: (dbProfile && dbProfile.name) || meta.name || email.split("@")[0],
-      dept: (dbProfile && dbProfile.dept) || meta.dept || "DU Member",
-      hall: (dbProfile && dbProfile.hall) || meta.hall || "University of Dhaka",
+      dept: (dbProfile && dbProfile.dept) || meta.dept || "",
+      hall: (dbProfile && dbProfile.hall) || meta.hall || "",
       batch: (dbProfile && dbProfile.batch) || meta.batch || "",
       bio: (dbProfile && dbProfile.bio) || meta.bio || ""
     };
@@ -89,34 +89,26 @@ window.DuboxdStore = (function () {
       password: payload.password,
       options: {
         data: {
-          name: payload.name,
-          dept: payload.dept,
-          hall: payload.hall,
-          batch: payload.batch,
-          bio: payload.bio || ""
+          name: payload.name
         }
       }
     });
     if (error) throw error;
     const profile = {
-      id: data.user ? data.user.id : "du-" + Date.now(),
+      id: data.user ? data.user.id : "member-" + Date.now(),
       email: payload.email,
       name: payload.name,
-      dept: payload.dept,
-      hall: payload.hall,
-      batch: payload.batch,
-      bio: payload.bio || ""
+      dept: "",
+      hall: "",
+      batch: "",
+      bio: ""
     };
     if (data.user) {
       try {
         await supabase.from("profiles").upsert([
           {
             id: data.user.id,
-            name: payload.name,
-            dept: payload.dept,
-            hall: payload.hall,
-            batch: payload.batch,
-            bio: payload.bio || ""
+            name: payload.name
           }
         ]);
       } catch (e) {}
@@ -165,8 +157,8 @@ window.DuboxdStore = (function () {
       poster_path: entry.poster_path || "",
       user_id: user.id,
       user_name: user.name,
-      user_dept: user.dept,
-      user_hall: user.hall,
+      user_dept: user.dept || "",
+      user_hall: user.hall || "",
       rating: Number(entry.rating || 4),
       liked: Boolean(entry.liked),
       rewatch: Boolean(entry.rewatch),

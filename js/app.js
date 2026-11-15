@@ -43,7 +43,7 @@ window.DuboxdApp = (function () {
           <div class="poster-overlay-title">${movie.title}</div>
           <div class="poster-overlay-meta">
             <span>${year}</span>
-            <span>DU ${duScore}</span>
+            <span>AVG ${duScore}</span>
           </div>
         </div>
       </a>
@@ -59,6 +59,8 @@ window.DuboxdApp = (function () {
     };
     const posterUrl = window.DuboxdTMDB.getPosterUrl(posterMovie);
     const fallbackUrl = window.DuboxdTMDB.buildCriterionSvgDataUri(log.movie_title, log.movie_year, "");
+    const deptBadge = log.user_dept ? `<span class="dept-badge">${log.user_dept}</span>` : "";
+    const hallBadge = log.user_hall ? `<span class="dept-badge">${log.user_hall}</span>` : "";
 
     if (!showPoster) {
       return `
@@ -66,8 +68,8 @@ window.DuboxdApp = (function () {
           <div>
             <div class="review-author-line">
               <span class="author-name">${log.user_name}</span>
-              <span class="dept-badge">${log.user_dept}</span>
-              <span class="dept-badge">${log.user_hall}</span>
+              ${deptBadge}
+              ${hallBadge}
               ${renderStarsHtml(log.rating, log.liked)}
               <span class="review-date ms-auto">${log.watched_date}</span>
             </div>
@@ -92,11 +94,11 @@ window.DuboxdApp = (function () {
           </div>
           <div class="review-author-line">
             <span class="author-name">${log.user_name}</span>
-            <span class="dept-badge">${log.user_dept}</span>
-            <span class="dept-badge">${log.user_hall}</span>
+            ${deptBadge}
+            ${hallBadge}
             ${renderStarsHtml(log.rating, log.liked)}
           </div>
-          <p class="review-body">${log.review || "Logged to campus diary."}</p>
+          <p class="review-body">${log.review || "Logged to diary."}</p>
         </div>
       </div>
     `;
@@ -114,7 +116,7 @@ window.DuboxdApp = (function () {
         <div class="site-container header-inner">
           <a href="index.html" class="brand-mark">
             <span class="brand-word">DU<span>BOXD</span></span>
-            <span class="brand-sub">University of Dhaka Film Ledger</span>
+            <span class="brand-sub">Campus Film Ledger</span>
           </a>
           <ul class="nav-links">
             <li><a href="index.html" class="${activePage === "home" ? "active" : ""}">Index</a></li>
@@ -142,7 +144,7 @@ window.DuboxdApp = (function () {
     mount.innerHTML = `
       <footer class="site-footer">
         <div class="site-container footer-inner">
-          <div>DUBOXD — UNIVERSITY OF DHAKA FILM ARCHIVE</div>
+          <div>DUBOXD — CAMPUS FILM ARCHIVE</div>
         </div>
       </footer>
     `;
@@ -308,7 +310,7 @@ window.DuboxdApp = (function () {
         if (bsModal) bsModal.hide();
 
         document.getElementById("log-review-text").value = "";
-        showToast("Entry recorded in DU Film Ledger");
+        showToast("Entry recorded in Film Ledger");
         window.dispatchEvent(new CustomEvent("duboxd:log-added"));
       } catch (err) {
         showToast(err.message || "Could not save entry");
@@ -412,7 +414,7 @@ window.DuboxdApp = (function () {
       <span>${movie.runtime} mins</span>
       <span>${movie.country}</span>
     `;
-    document.getElementById("detail-tagline").textContent = movie.tagline || "UNIVERSITY ARCHIVE SELECTION";
+    document.getElementById("detail-tagline").textContent = movie.tagline || "ARCHIVE SELECTION";
     document.getElementById("detail-synopsis").textContent = movie.overview;
 
     const genresMount = document.getElementById("detail-genres");
@@ -477,10 +479,10 @@ window.DuboxdApp = (function () {
       if (logs.length) {
         const avg = logs.reduce((acc, r) => acc + Number(r.rating || 4), 0) / logs.length;
         if (scoreEl) scoreEl.textContent = avg.toFixed(1);
-        if (countEl) countEl.textContent = `${logs.length} DU Dispatches`;
+        if (countEl) countEl.textContent = `${logs.length} Reviews`;
       } else {
         if (scoreEl) scoreEl.textContent = Number(movie.du_rating || 4.5).toFixed(1);
-        if (countEl) countEl.textContent = `${movie.du_logs || 40} Campus Logs`;
+        if (countEl) countEl.textContent = `${movie.du_logs || 40} Logs`;
       }
 
       if (reviewsMount) {
@@ -509,12 +511,11 @@ window.DuboxdApp = (function () {
       .map((n) => n[0])
       .join("")
       .slice(0, 2);
-    document.getElementById("profile-badges").innerHTML = `
-      <span class="dept-badge">${user.dept}</span>
-      <span class="dept-badge">${user.hall}</span>
-      <span class="dept-badge">${user.batch || "DU Member"}</span>
-    `;
-    document.getElementById("profile-bio").textContent = user.bio;
+    const badgeParts = [user.dept, user.hall, user.batch].filter(Boolean);
+    document.getElementById("profile-badges").innerHTML = badgeParts
+      .map((b) => `<span class="dept-badge">${b}</span>`)
+      .join("");
+    document.getElementById("profile-bio").textContent = user.bio || "";
 
     const signOutBtn = document.getElementById("btn-sign-out");
     if (signOutBtn) {
@@ -602,11 +603,7 @@ window.DuboxdApp = (function () {
           await window.DuboxdStore.signUp({
             name: document.getElementById("signup-name").value.trim(),
             email: document.getElementById("signup-email").value.trim(),
-            password: document.getElementById("signup-password").value,
-            dept: document.getElementById("signup-dept").value.trim(),
-            hall: document.getElementById("signup-hall").value.trim(),
-            batch: document.getElementById("signup-batch").value.trim(),
-            bio: document.getElementById("signup-bio").value.trim()
+            password: document.getElementById("signup-password").value
           });
           window.location.href = "profile.html";
         } catch (err) {

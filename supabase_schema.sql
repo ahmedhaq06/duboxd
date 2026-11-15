@@ -1,11 +1,11 @@
 create table if not exists public.profiles (
   id uuid references auth.users on delete cascade primary key,
   name text not null,
-  dept text not null,
-  hall text not null,
+  dept text,
+  hall text,
   batch text,
   bio text,
-  favorites integer[] default array[5967, 843, 11423, 470044],
+  favorites integer[] default array[]::integer[],
   watchlist integer[] default array[]::integer[],
   created_at timestamptz default now()
 );
@@ -18,8 +18,8 @@ create table if not exists public.logs (
   poster_path text,
   user_id text,
   user_name text not null,
-  user_dept text not null,
-  user_hall text not null,
+  user_dept text,
+  user_hall text,
   rating numeric(2,1) not null check (rating >= 0.5 and rating <= 5.0),
   liked boolean default false,
   rewatch boolean default false,

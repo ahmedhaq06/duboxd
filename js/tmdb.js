@@ -9,7 +9,7 @@ window.DuboxdTMDB = (function () {
   function buildCriterionSvgDataUri(title, year, director) {
     const safeTitle = (title || "Untitled Film").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     const safeYear = (year || "").replace(/&/g, "&amp;");
-    const safeDir = (director || "DU Archive").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const safeDir = (director || "Film Archive").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     const words = safeTitle.toUpperCase().split(" ");
     let line1 = "";
     let line2 = "";
@@ -108,7 +108,7 @@ window.DuboxdTMDB = (function () {
       du_logs: raw.du_logs || (seedMatch ? seedMatch.du_logs : 42),
       genres: genres.length ? genres : ["Drama"],
       cast: cast,
-      overview: raw.overview || "Synopsis archived in DU Film Society catalog."
+      overview: raw.overview || "Synopsis unavailable."
     };
   }
 
